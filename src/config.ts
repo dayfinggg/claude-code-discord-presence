@@ -1,5 +1,5 @@
 import { homedir } from "node:os";
-import { isAbsolute, join, resolve } from "node:path";
+import { posix, win32 } from "node:path";
 import { defaultDesktopSessionsDir } from "./claude/desktop-focus.ts";
 
 export interface Config {
@@ -57,34 +57,46 @@ function optional(value: string | undefined): string | undefined {
   return trimmed;
 }
 
+function pathApi(runtime: RuntimePaths): typeof posix {
+  return runtime.platform === "win32" ? win32 : posix;
+}
+
 function resolveUserPath(value: string, runtime: RuntimePaths): string {
-  if (value === "~") return runtime.userHome;
-  if (value.startsWith("~/") || value.startsWith("~\\")) {
-    return resolve(runtime.userHome, value.slice(2));
+  const paths = pathApi(runtime);
+  const trimmed = value.trim();
+  if (trimmed === "~") return paths.normalize(runtime.userHome);
+  if (trimmed.startsWith("~/") || trimmed.startsWith("~\\")) {
+    return paths.resolve(runtime.userHome, trimmed.slice(2));
   }
-  return isAbsolute(value) ? resolve(value) : resolve(runtime.cwd, value);
+  return paths.isAbsolute(trimmed) ? paths.normalize(trimmed) : paths.resolve(runtime.cwd, trimmed);
 }
 
 export function resolvePresenceDataDir(
   env: Record<string, string | undefined>,
   runtime: RuntimePaths,
 ): string {
+  const paths = pathApi(runtime);
   const configured = env.CLAUDE_PRESENCE_DATA_DIR?.trim();
   if (configured) return resolveUserPath(configured, runtime);
   if (runtime.platform === "win32") {
-    return join(env.LOCALAPPDATA?.trim() || join(runtime.userHome, "AppData", "Local"), "Claude Code Discord Presence");
+    const base = env.LOCALAPPDATA?.trim() || paths.join(runtime.userHome, "AppData", "Local");
+    return paths.join(base, "Claude Code Discord Presence");
   }
   if (runtime.platform === "darwin") {
-    return join(runtime.userHome, "Library", "Application Support", "Claude Code Discord Presence");
+    return paths.join(runtime.userHome, "Library", "Application Support", "Claude Code Discord Presence");
   }
   const state = env.XDG_STATE_HOME?.trim();
-  return join(state ? resolveUserPath(state, runtime) : join(runtime.userHome, ".local", "state"), "claude-code-discord-presence");
+  const base = state
+    ? resolveUserPath(state, runtime)
+    : paths.join(runtime.userHome, ".local", "state");
+  return paths.join(base, "claude-code-discord-presence");
 }
 
 export function loadConfig(
   env: Record<string, string | undefined> = process.env,
   runtime: RuntimePaths = runtimePaths(),
 ): Config {
+  const paths = pathApi(runtime);
   const applicationId =
     (env.CLAUDE_DISCORD_APPLICATION_ID ?? env.DISCORD_APPLICATION_ID)?.trim() ||
     DEFAULT_DISCORD_APPLICATION_ID;
@@ -122,7 +134,9 @@ export function loadConfig(
     usagePollIntervalMs: readInt(env.USAGE_POLL_INTERVAL_S, 300) * 1000,
     desktopSessionsDir,
     dataDir,
-    logFile: configuredLog ? resolveUserPath(configuredLog, runtime) : join(dataDir, "claude-code-discord-presence.log"),
+    logFile: configuredLog
+      ? resolveUserPath(configuredLog, runtime)
+      : paths.join(dataDir, "claude-code-discord-presence.log"),
     remoteHosts: resolveRemoteHosts(env.CLAUDE_REMOTE_HOSTS),
     remotePort: readInt(env.CLAUDE_REMOTE_PORT, port),
   };
