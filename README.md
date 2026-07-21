@@ -57,6 +57,11 @@ user-level `settings.json` used by Claude Code CLI and Desktop.
 - Existing settings are backed up under `~/.claude/backups/claude-code-presence/`; only five backups
   are retained.
 
+If `settings.json` already contains a statusline that is not managed by this package, the installer
+leaves it unchanged. Claude Code supports one `statusLine` command, so the presence statusline is not
+installed in that case: hooks and basic activity still work, but statusline-only fields may be
+unavailable until the user chooses which statusline to keep or combines the commands manually.
+
 Run the installer explicitly at any time with `claude-code-presence setup`.
 
 ## Desktop, CLI, and platforms
