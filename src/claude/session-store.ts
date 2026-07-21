@@ -351,6 +351,7 @@ export class SessionStore {
       case "PostToolUse":
         break;
       case "Stop":
+      case "StopFailure":
         session.status = "idle";
         session.action = "Idle";
         break;
@@ -384,9 +385,13 @@ export class SessionStore {
     } else if (session.transcriptPath) {
       if (!this.effectiveModel(session) || turnBoundary) void this.refreshModelFromTranscript(session);
       const statsEvent =
-        event === "Stop" || event === "UserPromptSubmit" || event === "PostToolUse" || event === "SessionStart";
+        event === "Stop" || event === "StopFailure" || event === "UserPromptSubmit" ||
+        event === "PostToolUse" || event === "SessionStart";
       if (statsEvent && !fromAgent) {
-        void this.refreshStatsFromTranscript(session, event === "Stop" || event === "SessionStart");
+        void this.refreshStatsFromTranscript(
+          session,
+          event === "Stop" || event === "StopFailure" || event === "SessionStart",
+        );
       }
     }
 

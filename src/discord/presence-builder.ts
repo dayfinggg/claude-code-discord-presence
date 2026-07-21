@@ -33,14 +33,6 @@ const MIN = 2;
 const MAX = 128;
 const SEP = " • ";
 
-const MODEL_NAMES: Record<string, string> = {
-  "claude-fable-5": "Fable 5",
-  "claude-opus-4-8": "Opus 4.8",
-  "claude-opus-4-7": "Opus 4.7",
-  "claude-sonnet-5": "Sonnet 5",
-  "claude-haiku-4-5": "Haiku 4.5",
-};
-
 const EFFORT_LABELS: Record<EffortLevel, string> = {
   minimal: "Minimal",
   low: "Light",
@@ -56,9 +48,35 @@ export function effortLabel(level: EffortLevel): string {
 }
 
 export function modelDisplayName(id?: string, fallback?: string): string {
-  if (id && MODEL_NAMES[id]) return MODEL_NAMES[id]!;
-  if (fallback && fallback.trim() !== "") return fallback;
-  if (id && id.trim() !== "") return id;
+  const fallbackName = fallback?.trim();
+  if (fallbackName && !/[-_[\]]/.test(fallbackName)) return fallbackName;
+  const raw = fallbackName || id?.trim();
+  if (raw) {
+    const normalized = raw
+      .replace(/^claude[-_\s]+/i, "")
+      .replace(/\s*\[[^\]]*\]\s*$/g, "")
+      .replace(/[_\s]+/g, "-")
+      .replace(/-(?:latest|\d+[km]|\d{8})$/i, "")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+    const tokens = normalized.split("-").filter(Boolean);
+    const title = (value: string) => value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+    if (/^\d/.test(tokens[0] ?? "")) {
+      const version: string[] = [];
+      while (tokens.length > 0 && /^\d+(?:\.\d+)?$/.test(tokens[0]!)) version.push(tokens.shift()!);
+      const family = tokens.shift();
+      if (family) return `${title(family)} ${version.join(".")}`.trim();
+    } else {
+      const family: string[] = [];
+      while (tokens.length > 0 && !/^\d+(?:\.\d+)?$/.test(tokens[0]!)) family.push(tokens.shift()!);
+      const version: string[] = [];
+      while (tokens.length > 0 && /^\d+(?:\.\d+)?$/.test(tokens[0]!)) version.push(tokens.shift()!);
+      if (family.length > 0) {
+        return `${family.map(title).join(" ")}${version.length > 0 ? ` ${version.join(".")}` : ""}`;
+      }
+    }
+    if (normalized) return normalized;
+  }
   return "Claude";
 }
 

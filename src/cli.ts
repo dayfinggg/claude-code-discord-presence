@@ -84,7 +84,7 @@ function setupInstalled(): boolean {
   try {
     const config = JSON.parse(readFileSync(join(claudeDir(), "discord-presence", "config.json"), "utf8"));
     const settings = readFileSync(join(claudeDir(), "settings.json"), "utf8");
-    return config.installerVersion === 1 && /discord-presence[\\/]hook\.mjs/i.test(settings) &&
+    return config.installerVersion === 2 && /discord-presence[\\/]hook\.mjs/i.test(settings) &&
       /discord-presence[\\/]statusline\.mjs/i.test(settings);
   } catch {
     return false;
