@@ -9,9 +9,7 @@ Cross-platform Discord Rich Presence for Claude Code Desktop and Claude Code CLI
 model, effort, usage limits, reset countdowns, tools, agents, token usage, cost, context, plan mode,
 Fast mode, and secure remote SSH sessions on Windows, macOS, and Linux.
 
-<p align="center">
-  <img src="assets/claude-code.png" width="180" alt="Claude Code Discord Presence icon">
-</p>
+![Claude Code Discord Rich Presence with plan limits, model, effort, activity status, usage statistics, and session timer](assets/claude-code-presence-cover.png)
 
 ## Quick start — no manual hook setup
 
