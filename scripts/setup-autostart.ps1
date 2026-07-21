@@ -4,6 +4,7 @@ $ErrorActionPreference = 'Stop'
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectDir = Split-Path -Parent $scriptDir
 $launcher = Join-Path $scriptDir 'run-hidden.vbs'
+$stopFile = Join-Path $env:LOCALAPPDATA 'Claude Code Discord Presence\stop.request'
 $entryPoint = Join-Path $projectDir 'dist\index.js'
 $name = 'ClaudeCodeDiscordPresence'
 $runKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
@@ -20,6 +21,7 @@ if (-not (Test-Path -LiteralPath $entryPoint)) {
 
 $command = "wscript.exe `"$launcher`""
 Set-ItemProperty -Path $runKey -Name $name -Value $command
+Remove-Item -LiteralPath $stopFile -Force -ErrorAction SilentlyContinue
 
 $escapedEntryPoint = [WildcardPattern]::Escape($entryPoint)
 $existing = Get-CimInstance Win32_Process -Filter "Name = 'node.exe'" -ErrorAction SilentlyContinue |

@@ -57,6 +57,7 @@ export class RpcClient {
   private reconnectTimer?: ReturnType<typeof setTimeout>;
   private reconnectAttempt = 0;
   private connectionGeneration = 0;
+  private activeSend?: Promise<void>;
 
   constructor(applicationId: string, transport?: RpcClientTransport | RpcClientTransportFactory) {
     if (typeof transport === "function") {
@@ -86,6 +87,8 @@ export class RpcClient {
     this.flushTimer = undefined;
     this.reconnectTimer = undefined;
     this.refreshTimer = undefined;
+    const activeSend = this.activeSend;
+    if (activeSend) await activeSend.catch(() => undefined);
     const client = this.client;
     if (!client) return;
     if (this.ready) {
@@ -116,6 +119,7 @@ export class RpcClient {
       if (this.client !== next) return;
       this.connectionGeneration++;
       this.ready = false;
+      if (this.stopped) return;
       log.warn("disconnected from Discord");
       this.scheduleReconnect();
     });
@@ -196,12 +200,25 @@ export class RpcClient {
 
     if (desired === null) {
       if (this.lastSent === null && this.lastSentPid === pid) return;
-      void this.send(desired, pid);
+      this.beginSend(desired, pid);
       return;
     }
 
     if (this.lastSentPid === pid && this.lastSent !== null && activityEquals(desired, this.lastSent)) return;
-    void this.send(desired, pid);
+    this.beginSend(desired, pid);
+  }
+
+  private beginSend(activity: Activity | null, pid: number): void {
+    const pending = this.send(activity, pid);
+    this.activeSend = pending;
+    void pending.then(
+      () => {
+        if (this.activeSend === pending) this.activeSend = undefined;
+      },
+      () => {
+        if (this.activeSend === pending) this.activeSend = undefined;
+      },
+    );
   }
 
   private async send(activity: Activity | null, pid: number): Promise<void> {
