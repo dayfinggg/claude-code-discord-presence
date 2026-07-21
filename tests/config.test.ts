@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { join, resolve } from "node:path";
+import { posix, win32 } from "node:path";
 import {
   loadConfig,
   resolvePresenceDataDir,
@@ -8,8 +8,8 @@ import {
 } from "../src/config.ts";
 
 const runtime: RuntimePaths = {
-  userHome: join("C:", "Users", "example"),
-  cwd: join("C:", "apps", "claude-presence"),
+  userHome: win32.join("C:\\", "Users", "example"),
+  cwd: win32.join("C:\\", "apps", "claude-presence"),
   platform: "win32",
 };
 
@@ -19,16 +19,20 @@ test("configuration includes a zero-config Discord application id and accepts an
 });
 
 test("data paths use per-user platform locations and support overrides", () => {
-  const localAppData = join(runtime.userHome, "AppData", "Local");
+  const localAppData = win32.join(runtime.userHome, "AppData", "Local");
   expect(resolvePresenceDataDir({ LOCALAPPDATA: localAppData }, runtime)).toBe(
-    join(localAppData, "Claude Code Discord Presence"),
+    win32.join(localAppData, "Claude Code Discord Presence"),
   );
   expect(resolvePresenceDataDir({ CLAUDE_PRESENCE_DATA_DIR: "state" }, runtime)).toBe(
-    resolve(runtime.cwd, "state"),
+    win32.resolve(runtime.cwd, "state"),
   );
-  const linux = { ...runtime, platform: "linux" as const };
+  const linux: RuntimePaths = {
+    userHome: "/home/example",
+    cwd: "/opt/claude-presence",
+    platform: "linux",
+  };
   expect(resolvePresenceDataDir({ XDG_STATE_HOME: "state" }, linux)).toBe(
-    join(resolve(runtime.cwd, "state"), "claude-code-discord-presence"),
+    posix.join(posix.resolve(linux.cwd, "state"), "claude-code-discord-presence"),
   );
 });
 
@@ -53,7 +57,7 @@ test("desktop session discovery can be disabled without hardcoded paths", () => 
     CLAUDE_DESKTOP_SESSIONS_DIR: "off",
   }, runtime);
   expect(config.desktopSessionsDir).toBeUndefined();
-  expect(config.logFile).toBe(join(config.dataDir, "claude-code-discord-presence.log"));
+  expect(config.logFile).toBe(win32.join(config.dataDir, "claude-code-discord-presence.log"));
 });
 
 test("remote hosts accept only explicit safe SSH aliases", () => {
