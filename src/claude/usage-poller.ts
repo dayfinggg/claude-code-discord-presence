@@ -69,6 +69,7 @@ export class UsagePoller {
   }
 
   private watchCredentials(): void {
+    if (process.platform === "darwin") return;
     try {
       this.watcher = watch(CREDENTIALS_PATH, () => {
         if (this.watchDebounce) clearTimeout(this.watchDebounce);

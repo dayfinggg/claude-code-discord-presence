@@ -42,6 +42,8 @@ required. Existing unrelated Claude settings and hooks are preserved.
 
 The account usage endpoint is preferred over placeholder statusline zeroes. This prevents the false
 `100% left` display that some Claude clients emit while keeping statusline data as an offline fallback.
+On macOS, the service reads the same OAuth metadata from the encrypted macOS Keychain that Claude
+Code uses; Linux and Windows use Claude's protected `.credentials.json` file.
 
 ## Hooks and statusline
 
