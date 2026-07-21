@@ -21,7 +21,7 @@ const hookTarget = join(installDir, "hook.mjs");
 const statuslineTarget = join(installDir, "statusline.mjs");
 const events = [
   "SessionStart", "UserPromptSubmit", "PreToolUse", "PostToolUse", "PostToolUseFailure",
-  "Stop", "SubagentStart", "SubagentStop", "Notification", "SessionEnd",
+  "Stop", "StopFailure", "SubagentStart", "SubagentStop", "Notification", "SessionEnd",
 ];
 const matcherEvents = new Set(["PreToolUse", "PostToolUse", "PostToolUseFailure"]);
 const quote = (value) => `"${value.replaceAll("\\", "/").replaceAll('"', '\\"')}"`;
@@ -60,7 +60,7 @@ await writeFile(hookTarget, hookSource, { mode: 0o700 });
 await writeFile(statuslineTarget, statuslineSource, { mode: 0o700 });
 await writeFile(
   join(installDir, "config.json"),
-  `${JSON.stringify({ port, remote: true, installerVersion: 1 }, null, 2)}\n`,
+  `${JSON.stringify({ port, remote: true, installerVersion: 2 }, null, 2)}\n`,
   { mode: 0o600 },
 );
 

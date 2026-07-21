@@ -74,6 +74,9 @@ export interface HookPayload {
   agent_id?: string;
   notification_type?: string;
   reason?: string;
+  error?: string;
+  error_details?: string;
+  last_assistant_message?: string;
   remote?: boolean;
   usage?: {
     input_tokens?: number;

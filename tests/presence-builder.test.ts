@@ -35,6 +35,14 @@ test("modelDisplayName maps known ids", () => {
   expect(modelDisplayName(undefined, undefined)).toBe("Claude");
 });
 
+test("modelDisplayName normalizes CLI aliases and future model ids", () => {
+  expect(modelDisplayName("claude-opus-4-8", "opus-4-8-[1m]")).toBe("Opus 4.8");
+  expect(modelDisplayName("claude-opus-4-8-20260701")).toBe("Opus 4.8");
+  expect(modelDisplayName("claude-3-5-sonnet-20241022")).toBe("Sonnet 3.5");
+  expect(modelDisplayName("claude-aurora-6-2")).toBe("Aurora 6.2");
+  expect(modelDisplayName("claude-aurora-6-2", "Aurora 6.2 Preview")).toBe("Aurora 6.2 Preview");
+});
+
 test("buildDetails renders plan and both windows as % left", () => {
   expect(buildDetails(base())).toBe("Max 20X • 5h 55% left • 7d 100% left");
 });

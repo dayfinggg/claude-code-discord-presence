@@ -41,10 +41,12 @@ test("setup replaces only presence integrations and retains unrelated Claude set
     group.hooks.some((hook) => hook.type === "command"))).toBe(true);
   expect(settings.hooks.PreToolUse.some((group: { hooks: Array<{ command?: string }> }) =>
     group.hooks.some((hook) => hook.command === "policy-check"))).toBe(true);
+  expect(settings.hooks.StopFailure.some((group: { hooks: Array<{ command?: string }> }) =>
+    group.hooks.some((hook) => /discord-presence[\\/]hook\.mjs/i.test(hook.command ?? "")))).toBe(true);
   expect(await readdir(backupDir)).toHaveLength(5);
   expect(JSON.parse(await readFile(join(dir, "discord-presence", "config.json"), "utf8"))).toEqual({
     port: 41724,
     remote: false,
-    installerVersion: 1,
+    installerVersion: 2,
   });
 });

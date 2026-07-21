@@ -23,6 +23,7 @@ const events = [
   "PostToolUse",
   "PostToolUseFailure",
   "Stop",
+  "StopFailure",
   "SubagentStart",
   "SubagentStop",
   "Notification",
@@ -82,7 +83,7 @@ await copyFile(join(scriptsDir, "hook.mjs"), hookTarget);
 await copyFile(join(scriptsDir, "statusline.mjs"), statuslineTarget);
 await writeFile(
   join(installDir, "config.json"),
-  `${JSON.stringify({ port, remote: false, installerVersion: 1 }, null, 2)}\n`,
+  `${JSON.stringify({ port, remote: false, installerVersion: 2 }, null, 2)}\n`,
   { mode: 0o600 },
 );
 

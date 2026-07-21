@@ -326,6 +326,25 @@ test("statusline Fast mode is reflected in the Claude snapshot", () => {
   store.dispose();
 });
 
+test("an API StopFailure ends Thinking immediately", () => {
+  const store = newStore();
+  store.handleHook(hook({ hook_event_name: "UserPromptSubmit", session_id: "A" }));
+  expect(store.snapshot()?.status).toBe("thinking");
+  expect(store.snapshot()?.thinkingSeconds).toBeDefined();
+
+  store.handleHook(hook({
+    hook_event_name: "StopFailure",
+    session_id: "A",
+    error: "authentication_failed",
+    error_details: "401 Unauthorized",
+  }));
+
+  expect(store.snapshot()?.status).toBe("idle");
+  expect(store.snapshot()?.action).toBe("Idle");
+  expect(store.snapshot()?.thinkingSeconds).toBeUndefined();
+  store.dispose();
+});
+
 test("presence persists as Idle after long inactivity while Claude Code is still running", () => {
   const store = newStore();
   store.setAppLiveness(true, Date.now() - 3 * 60 * 60 * 1000);
