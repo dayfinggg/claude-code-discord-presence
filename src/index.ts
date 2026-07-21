@@ -1,4 +1,4 @@
-import { mkdirSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import { loadConfig } from "./config.ts";
 import { startServer } from "./server/http-server.ts";
 import { SessionStore } from "./claude/session-store.ts";
@@ -154,6 +154,8 @@ monthlyUsage.start();
 remoteTunnels.start();
 void refreshPlan();
 const planTimer = setInterval(() => void refreshPlan(), 30 * 60 * 1000);
+const stopFile = process.env.PRESENCE_STOP_FILE?.trim();
+let stopFileTimer: ReturnType<typeof setInterval> | undefined;
 
 let shuttingDown = false;
 async function shutdown(signal: string): Promise<void> {
@@ -161,6 +163,7 @@ async function shutdown(signal: string): Promise<void> {
   shuttingDown = true;
   log.info(`shutting down (${signal})`);
   clearInterval(planTimer);
+  if (stopFileTimer) clearInterval(stopFileTimer);
   themeWatcher.stop();
   poller.stop();
   desktopFocus?.stop();
@@ -171,11 +174,19 @@ async function shutdown(signal: string): Promise<void> {
   monthlyUsage.stop();
   remoteTunnels.stop();
   store.dispose();
-  await new Promise<void>((resolve) => server.close(() => resolve()));
   await rpc.stop();
+  await new Promise<void>((resolve) => {
+    server.close(() => resolve());
+    server.closeAllConnections();
+  });
   process.exit(0);
 }
 
 process.on("SIGINT", () => void shutdown("SIGINT"));
 process.on("SIGTERM", () => void shutdown("SIGTERM"));
+if (stopFile) {
+  stopFileTimer = setInterval(() => {
+    if (existsSync(stopFile)) void shutdown("autostart removal");
+  }, 500);
+}
 log.info("Claude Code Discord Presence started");

@@ -9,9 +9,11 @@ class FakeTransport implements RpcClientTransport {
   setCalls: Array<{ activity: Activity; pid?: number }> = [];
   loginCalls = 0;
   destroyCalls = 0;
+  setActivityWait?: Promise<void>;
   readonly user = {
     setActivity: async (activity: Activity, pid?: number): Promise<void> => {
       this.setCalls.push({ activity, pid });
+      if (this.setActivityWait) await this.setActivityWait;
     },
   };
 
@@ -77,4 +79,25 @@ test("the desired activity is restored after reconnecting", async () => {
   ]);
   await rpc.stop();
   expect(transport.clearPids.at(-1)).toBe(4321);
+});
+
+test("shutdown waits for an in-flight update before clearing activity", async () => {
+  const transport = new FakeTransport();
+  let releaseSetActivity!: () => void;
+  transport.setActivityWait = new Promise<void>((resolve) => {
+    releaseSetActivity = resolve;
+  });
+  const rpc = new RpcClient("app", transport);
+  const activity: Activity = { type: 0, details: "Working", state: "Running a command" };
+  rpc.setActivity(activity, 4321);
+  transport.emit("ready");
+
+  const stopping = rpc.stop();
+  await Promise.resolve();
+  expect(transport.clearCalls).toBe(0);
+
+  releaseSetActivity();
+  await stopping;
+  expect(transport.clearPids).toEqual([4321]);
+  expect(transport.destroyCalls).toBe(1);
 });

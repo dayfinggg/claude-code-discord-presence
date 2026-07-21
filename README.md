@@ -85,6 +85,9 @@ The command ensures hooks are installed before registering startup. Remove it wi
 claude-code-presence autostart:remove
 ```
 
+`Ctrl+C` stops only the foreground instance in the current terminal. The removal command also
+gracefully stops an active background instance so Discord activity is cleared before exit.
+
 ## Optional configuration
 
 Defaults work without configuration. Pass options directly:
