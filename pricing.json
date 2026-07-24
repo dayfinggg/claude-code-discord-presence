@@ -32,6 +32,7 @@
   },
   "claude": {
     "models": {
+      "claude-opus-5": { "input": 5, "output": 25, "cacheWrite": 6.25, "cacheWriteOneHour": 10, "cacheRead": 0.5, "fastMultiplier": 2 },
       "claude-opus-4-8": { "input": 5, "output": 25, "cacheWrite": 6.25, "cacheWriteOneHour": 10, "cacheRead": 0.5, "fastMultiplier": 2 },
       "claude-opus-4-7": { "input": 5, "output": 25, "cacheWrite": 6.25, "cacheWriteOneHour": 10, "cacheRead": 0.5, "fastMultiplier": 6 },
       "claude-opus-4-6": { "input": 5, "output": 25, "cacheWrite": 6.25, "cacheWriteOneHour": 10, "cacheRead": 0.5, "fastMultiplier": 6 },

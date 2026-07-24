@@ -20,6 +20,12 @@ test("costUsd prices opus 4.8 per component", () => {
   expect(cost).toBeCloseTo(3.5, 6);
 });
 
+test("costUsd prices opus 5 like opus 4.8", () => {
+  const usage = { input: 100_000, output: 50_000, cacheRead: 1_000_000, cacheWrite: 200_000 };
+  expect(costUsd("claude-opus-5", usage)).toBeCloseTo(costUsd("claude-opus-4-8", usage), 6);
+  expect(costUsd("claude-opus-5-fast", usage)).toBeCloseTo(costUsd("claude-opus-4-8-fast", usage), 6);
+});
+
 test("costUsd prices sonnet 5 intro rate", () => {
   expect(costUsd("claude-sonnet-5", { input: 1_000_000, output: 1_000_000, cacheRead: 0, cacheWrite: 0 })).toBeCloseTo(12, 6);
 });
